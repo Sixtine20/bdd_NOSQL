@@ -24,29 +24,14 @@ def startup_db_client():
     app.database = app.mongodb_client[config["DB_NAME"]]
     print("Connected to the MongoDB database!")
 
+    app.neo4j_driver = GraphDatabase.driver(
+        NEO4J_URI, 
+        auth=basic_auth(NEO4J_USERNAME, NEO4J_PASSWORD)
+    )
+
 @app.on_event("shutdown")
 def shutdown_db_client():
     app.mongodb_client.close()
+    app.neo4j_driver.close()
 
 app.include_router(movie_router, tags=["movies"], prefix="/movie")
-
-
-
-driver = GraphDatabase.driver(
-    NEO4J_URI, 
-    auth=basic_auth(NEO4J_USERNAME, NEO4J_PASSWORD)
-)
-
-cypher_query = '''
-MATCH (movie:Movie {title:$favorite})<-[:ACTED_IN]-(actor)-[:ACTED_IN]->(rec:Movie)
- RETURN distinct rec.title as title LIMIT 20
-'''
-
-with driver.session(database="neo4j") as session:
-  results = session.read_transaction(
-    lambda tx: tx.run(cypher_query,
-                      favorite="The Matrix").data())
-  for record in results:
-    print(record['title'])
-
-driver.close()

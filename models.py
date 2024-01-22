@@ -98,3 +98,19 @@ class MovieUpdate(BaseModel):
                 "num_mflix_comments": 0
             }
         }
+
+class RatedMovie(BaseModel):
+    tagline: str
+    title: str
+    released: int
+
+class UserMovies(BaseModel):
+    name: str
+
+class User(BaseModel):
+    user: UserMovies
+    numberOfMovies: int
+    ratedMovies: List[RatedMovie]
+
+class UserRatedMovie(BaseModel):
+    user: dict

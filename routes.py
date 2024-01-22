@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Body, Request, HTTPException
 from typing import List, Optional
+from neo4j import basic_auth
 
-from models import Movie, MovieUpdate
+from models import Movie, MovieUpdate, User, UserRatedMovie
+
 
 router = APIRouter()
 
@@ -43,3 +45,35 @@ def update_movie(title: str, request: Request, movie_update: MovieUpdate = Body(
         return existing_movie
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movie with title '{title}' not found")
+
+
+@router.get("/neo4j/rated/{title}", response_description="list users who rated a movie", response_model=List[UserRatedMovie])
+def neo4j_get_users_rated(title: str, request: Request):
+
+    cypher_query = '''
+    MATCH (movie:Movie {title: $title})<-[r]-(user:Person)
+    WHERE r.rating IS NOT NULL
+    RETURN user
+    '''
+
+    with request.app.neo4j_driver.session(database="neo4j") as session:
+        results = session.read_transaction(
+            lambda tx: tx.run(cypher_query, title=title).data())
+        
+        return results
+    
+@router.get("/neo4j/user/{name}", response_description="a user with the number of movies he has rated and the list of rated movies", response_model=List[User])
+def neo4j_get_user(name: str, request: Request):
+
+    cypher_query = '''
+    MATCH (user:Person {name: $name})
+    OPTIONAL MATCH (user)-[r]->(movie:Movie)
+    WHERE r.rating IS NOT NULL
+    RETURN user, COALESCE(COUNT(r.rating), 0) AS numberOfMovies, COLLECT(movie) AS ratedMovies
+    '''
+
+    with request.app.neo4j_driver.session(database="neo4j") as session:
+        results = session.read_transaction(
+            lambda tx: tx.run(cypher_query, name=name).data())
+        
+        return results
