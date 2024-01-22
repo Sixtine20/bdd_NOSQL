@@ -28,6 +28,8 @@ def startup_db_client():
         NEO4J_URI, 
         auth=basic_auth(NEO4J_USERNAME, NEO4J_PASSWORD)
     )
+    
+    print("Connected to the Neo4J database!")
 
 @app.on_event("shutdown")
 def shutdown_db_client():

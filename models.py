@@ -114,3 +114,13 @@ class User(BaseModel):
 
 class UserRatedMovie(BaseModel):
     user: dict
+
+class CommonMoviesResponse(BaseModel):
+    common_movies_count: int
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "common_movies_count": 0
+            }
+        }
