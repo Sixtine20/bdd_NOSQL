@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Body, Request, HTTPException
+from fastapi import APIRouter, Body, Request, HTTPException, status
 from typing import List, Optional
 from neo4j import basic_auth
-
 from models import Movie, MovieUpdate, User, UserRatedMovie, CommonMoviesResponse
 
 
@@ -11,22 +10,6 @@ router = APIRouter()
 def list_movies(request: Request):
     movies = list(request.app.database["movies"].find(limit=100))
     return movies
-
-
-@router.get("/{param}", response_description="Get a single movie by title or actor name", response_model=Movie)
-def find_movie(param: str, request: Request):
-    search_query = {
-        "$or": [
-            {"title": {"$regex": f".*{param}.*", "$options": "i"}},
-            {"cast": {"$in": [param]}}
-        ]
-    }
-
-    if (movie := request.app.database["movies"].find_one(search_query)) is not None:
-        movie["_id"] = str(movie["_id"])
-        return movie
-
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movie with title or actor '{param}' not found")
 
 
 @router.get("/common-movies", response_description="List common movies between MongoDB and Neo4j", response_model=CommonMoviesResponse)
@@ -47,6 +30,22 @@ def get_common_movies(request: Request):
     common_movies_count = sum(record['count'] for record in results)
 
     return CommonMoviesResponse(common_movies_count=common_movies_count)
+
+
+@router.get("/{param}", response_description="Get a single movie by title or actor name", response_model=Movie)
+def find_movie(param: str, request: Request):
+    search_query = {
+        "$or": [
+            {"title": {"$regex": f".*{param}.*", "$options": "i"}},
+            {"cast": {"$in": [param]}}
+        ]
+    }
+    
+    if (movie := request.app.database["movies"].find_one(search_query)) is not None:
+        return movie
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movie with title or actor '{param}' not found")
+
 
 
 @router.get("/neo4j/rated/{title}", response_description="list users who rated a movie", response_model=List[UserRatedMovie])
