@@ -15,7 +15,7 @@ pip3 install neo4j-driver
 
 Puis cloner le repository :
 
-git clone ...
+git clone https://github.com/Sixtine20/bdd_NOSQL.git
 
 ### Pour lancer
 Exécuter l'application FastAPI avec cette commande dans le terminal où se situe les fichiers :
