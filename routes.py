@@ -1,3 +1,4 @@
+from xmlrpc.client import ResponseError
 from fastapi import APIRouter, Body, Request, HTTPException
 from typing import List, Optional
 from neo4j import basic_auth
@@ -7,7 +8,7 @@ from models import Movie, MovieUpdate, User, UserRatedMovie, CommonMoviesRespons
 
 router = APIRouter()
 
-@router.get("/", response_description="List all movies", response_model=List[Movie])
+@router.get("", response_description="List all movies", response_model=List[Movie])
 def list_movies(request: Request):
     # Récupérer la liste de films depuis MongoDB
     movies = list(request.app.database["movies"].find(limit=100))
