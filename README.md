@@ -17,6 +17,10 @@ Puis cloner le repository :
 
 git clone https://github.com/Sixtine20/bdd_NOSQL.git
 
+Ensuite, dans le fichier .env : 
+
+Modifier les variables d'environnement du cluster
+
 ### Pour lancer
 Exécuter l'application FastAPI avec cette commande dans le terminal où se situe les fichiers :
 
